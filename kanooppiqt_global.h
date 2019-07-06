@@ -1,0 +1,12 @@
+#ifndef KANOOPPIQT_GLOBAL_H
+#define KANOOPPIQT_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(KANOOPPIQT_LIBRARY)
+#  define KANOOPPIQTSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define KANOOPPIQTSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // KANOOPPIQT_GLOBAL_H
