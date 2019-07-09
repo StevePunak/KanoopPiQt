@@ -29,6 +29,10 @@ private slots:
     void handleSocketError(QTcpSocket::SocketError error);
     void handleSocketConnected();
     void handleSocketDisconnected();
+    void handleWriteCommand(QByteArray commandData);
+
+signals:
+    void writeCommand(QByteArray commandData);
 
 private:
     Pigs();

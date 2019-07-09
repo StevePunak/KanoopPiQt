@@ -10,6 +10,7 @@ Pigs::Pigs()
     connect(&_socket, QOverload<QAbstractSocket::SocketState>::of(&QAbstractSocket::stateChanged), this, &Pigs::handleSocketStateChange);
     connect(&_socket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, &Pigs::handleSocketError);
     connect(&_socket, &QTcpSocket::connected, this, &Pigs::handleSocketConnected);
+    connect(this, &Pigs::writeCommand, this, &Pigs::handleWriteCommand);
 }
 
 Pigs *Pigs::instance()
@@ -43,22 +44,28 @@ void Pigs::setAddress(const QString &address, quint16 port)
 
 void Pigs::handleSocketStateChange(QAbstractSocket::SocketState state)
 {
-    qDebug() << "Pigs socket " << state;
+    Q_UNUSED(state);
 }
 
 void Pigs::handleSocketError(QAbstractSocket::SocketError error)
 {
-    qDebug() << "Pigs socket error" << error;
+    Q_UNUSED(error);
 }
 
 void Pigs::handleSocketConnected()
 {
-    qDebug() << "Pigs socket connected";
 }
 
 void Pigs::handleSocketDisconnected()
 {
+}
 
+void Pigs::handleWriteCommand(QByteArray commandData)
+{
+    if(KLog::systemVerbosity() > 1)
+        KLog::sysLogHex(commandData);
+    _socket.write(commandData);
+    _socket.waitForBytesWritten(5000);
 }
 
 void Pigs::SetMode(GPIO::Pin gpioPin, GPIO::PinMode mode)
@@ -137,8 +144,7 @@ void Pigs::sendCommand(PigCommand& command)
     if(_socket.state() == QTcpSocket::ConnectedState)
     {
         QByteArray serialized = command.serialize();
-        _socket.write(serialized);
-        _socket.waitForBytesWritten(5000);
+        emit writeCommand(serialized);
     }
     else
     {
