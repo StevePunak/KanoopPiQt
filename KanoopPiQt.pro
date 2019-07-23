@@ -15,6 +15,10 @@ DEFINES += KANOOPPIQT_LIBRARY
 
 INCLUDEPATH+=$$(HOME)/src/KanoopCommonQt
 
+# Sysroot /usr/include
+INCLUDEPATH+= /home/spunak/mnt/raspi/usr/include
+
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -26,16 +30,28 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-message(PLATFORM is $(PLATFORM_LIBS))
-target.path = /home/spunak/$(PLATFORM_LIBS)
+unix:
+contains(CONFIG, cross_compile):{
+        message("building for PI")
+        target.path = /${HOME}/lib/arm
+    }else{
+        message("Not building for PI")
+        target.path = /${HOME}/lib/x86
+    }
 
 SOURCES += \
+        devices/ads1115.cpp \
+        devices/bmp280.cpp \
+        i2c.cpp \
         kanooppiqt.cpp \
         pigcommand.cpp \
         pigs.cpp
 
 HEADERS += \
+        devices/ads1115.h \
+        devices/bmp280.h \
         gpio.h \
+        i2c.h \
         kanooppiqt.h \
         kanooppiqt_global.h  \
         pigcommand.h \
