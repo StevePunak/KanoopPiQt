@@ -15,6 +15,10 @@ DEFINES += KANOOPPIQT_LIBRARY
 
 INCLUDEPATH+=$$(HOME)/src/KanoopCommonQt
 
+# Sysroot /usr/include
+INCLUDEPATH+= /home/spunak/mnt/raspi/usr/include
+
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -36,6 +40,7 @@ contains(CONFIG, cross_compile):{
     }
 
 SOURCES += \
+        devices/ads1115.cpp \
         devices/bmp280.cpp \
         i2c.cpp \
         kanooppiqt.cpp \
@@ -43,6 +48,7 @@ SOURCES += \
         pigs.cpp
 
 HEADERS += \
+        devices/ads1115.h \
         devices/bmp280.h \
         gpio.h \
         i2c.h \
