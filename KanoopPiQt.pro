@@ -9,15 +9,14 @@ QT      += network
 
 TARGET = KanoopPiQt
 TEMPLATE = lib
-CONFIG += staticlib
+#CONFIG += staticlib
 
 DEFINES += KANOOPPIQT_LIBRARY
 
 INCLUDEPATH+=$$(HOME)/src/KanoopCommonQt
 
 # Sysroot /usr/include
-INCLUDEPATH+= /home/spunak/mnt/raspi/usr/include
-
+INCLUDEPATH+= $$[QT_SYSROOT]/usr/include
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -25,10 +24,7 @@ INCLUDEPATH+= /home/spunak/mnt/raspi/usr/include
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-# You can also make your code fail to compile if you use deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+LIBS += -Wl,-init,init -Wl,-fini,deinit
 
 unix:
 contains(CONFIG, cross_compile):{
@@ -42,6 +38,7 @@ contains(CONFIG, cross_compile):{
 SOURCES += \
         devices/ads1115.cpp \
         devices/bmp280.cpp \
+        gpioreader.cpp \
         i2c.cpp \
         kanooppiqt.cpp \
         pigcommand.cpp \
@@ -51,6 +48,7 @@ HEADERS += \
         devices/ads1115.h \
         devices/bmp280.h \
         gpio.h \
+        gpioreader.h \
         i2c.h \
         kanooppiqt.h \
         kanooppiqt_global.h  \
@@ -58,3 +56,6 @@ HEADERS += \
         pigs.h
 
 INSTALLS = target
+
+DISTFILES += \
+    deploy.sh
