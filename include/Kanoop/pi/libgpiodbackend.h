@@ -23,13 +23,30 @@ public:
     /** @brief Closes the chip and releases every outstanding request. */
     virtual ~LibGpiodBackend();
 
-    /** @brief Opens the chip whose kernel label matches @p label. @return True on success. */
+    /**
+     * @brief Opens the chip whose kernel label matches @p label. @return True on success.
+     *
+     * @warning Closes any chip already open first, releasing every outstanding
+     *          request exactly as closeChip() does.
+     */
     virtual bool openChipByLabel(const QString& label) override;
 
-    /** @brief Opens the chip at character device @p path. @return True on success. */
+    /**
+     * @brief Opens the chip at character device @p path. @return True on success.
+     *
+     * @warning Closes any chip already open first, releasing every outstanding
+     *          request exactly as closeChip() does.
+     */
     virtual bool openChipByPath(const QString& path) override;
 
-    /** @brief Releases every request and closes the chip. */
+    /**
+     * @brief Releases every request and closes the chip.
+     *
+     * @warning Consumers holding a handle from before this call are not
+     *          notified. Their handle stays non-zero, so isRequested() keeps
+     *          reporting true and every subsequent setValues() fails. Such a
+     *          consumer must be re-created rather than re-requested.
+     */
     virtual void closeChip() override;
 
     /** @brief Returns true when a chip is open. */

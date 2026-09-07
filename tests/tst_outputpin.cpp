@@ -15,6 +15,7 @@ private slots:
         OutputPin pin(&backend, QString("test"), 25, true);
 
         QVERIFY(pin.request());
+        QVERIFY(pin.isRequested());
         QCOMPARE(pin.isActive(), false);
         QCOMPARE(backend.lineValue(25), Gpio::Value::Inactive);
     }

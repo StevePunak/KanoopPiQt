@@ -119,6 +119,75 @@ private slots:
         QCOMPARE(spy.at(0).at(1).value<Gpio::Edge>(), Gpio::Edge::Falling);
     }
 
+    void setValuesRejectsADeadHandle()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::OutputRequest request;
+        request.offsets = QList<quint32>() << 5;
+        Gpio::RequestHandle handle = backend.requestOutputs(request);
+        backend.release(handle);
+
+        QList<quint32> offsets = QList<quint32>() << 5;
+        QList<Gpio::Value> values = QList<Gpio::Value>() << Gpio::Value::Active;
+        QCOMPARE(backend.setValues(handle, offsets, values), false);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
+    void setValuesRejectsTheInvalidRequestHandle()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        QList<quint32> offsets = QList<quint32>() << 5;
+        QList<Gpio::Value> values = QList<Gpio::Value>() << Gpio::Value::Active;
+        QCOMPARE(backend.setValues(Gpio::InvalidRequest, offsets, values), false);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
+    void requestOutputsRejectsAnEmptyOffsetList()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::OutputRequest request;
+        QCOMPARE(backend.requestOutputs(request), Gpio::InvalidRequest);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
+    void requestInputsRejectsAnEmptyOffsetList()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::InputRequest request;
+        QCOMPARE(backend.requestInputs(request), Gpio::InvalidRequest);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
+    void requestOutputsRejectsDuplicateOffsets()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::OutputRequest request;
+        request.offsets = QList<quint32>() << 5 << 5;
+        QCOMPARE(backend.requestOutputs(request), Gpio::InvalidRequest);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
+    void requestInputsRejectsDuplicateOffsets()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::InputRequest request;
+        request.offsets = QList<quint32>() << 5 << 5;
+        QCOMPARE(backend.requestInputs(request), Gpio::InvalidRequest);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
     void failNextRequestIsOneShot()
     {
         MockBackend backend;

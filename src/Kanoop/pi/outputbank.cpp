@@ -13,6 +13,7 @@ OutputBank::OutputBank(IGpioBackend* backend,
 
 OutputBank::~OutputBank()
 {
+    allInactive();
     release();
 }
 

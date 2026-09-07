@@ -11,6 +11,12 @@
  *
  * Values are logical. setValue(offset, true) energises the load; the kernel
  * performs any electrical inversion because activeLow was set on the request.
+ *
+ * @warning The kernel releases a requested line when the owning process exits,
+ *          and a released line reverts to input. Hardware that must stay
+ *          de-energised while no process holds the line needs an external
+ *          pull resistor; there is no way to latch an output state across
+ *          process exit.
  */
 class KANOOPPI_EXPORT OutputBank : public QObject
 {

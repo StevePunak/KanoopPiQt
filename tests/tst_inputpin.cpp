@@ -70,37 +70,47 @@ private slots:
         QCOMPARE(spy.count(), 0);
     }
 
-    void activeLowMapsFallingToAsserted()
+    void risingAssertsFallingDeassertsRegardlessOfActiveLow_data()
     {
+        QTest::addColumn<bool>("activeLow");
+        QTest::newRow("activeLow") << true;
+        QTest::newRow("activeHigh") << false;
+    }
+
+    void risingAssertsFallingDeassertsRegardlessOfActiveLow()
+    {
+        QFETCH(bool, activeLow);
+
         MockBackend backend;
         backend.openChipByLabel(QString("test"));
         InputPin pin(&backend, QString("test"), 25);
-        pin.setActiveLow(true);
+        pin.setActiveLow(activeLow);
         pin.request();
 
         QSignalSpy asserted(&pin, &InputPin::asserted);
         QSignalSpy deasserted(&pin, &InputPin::deasserted);
 
-        backend.simulateEdge(25, Gpio::Edge::Falling);
+        backend.simulateEdge(25, Gpio::Edge::Rising);
         QCOMPARE(asserted.count(), 1);
         QCOMPARE(deasserted.count(), 0);
 
-        backend.simulateEdge(25, Gpio::Edge::Rising);
+        backend.simulateEdge(25, Gpio::Edge::Falling);
+        QCOMPARE(asserted.count(), 1);
         QCOMPARE(deasserted.count(), 1);
     }
 
-    void activeHighMapsRisingToAsserted()
+    void edgeAfterReleaseIsIgnored()
     {
         MockBackend backend;
         backend.openChipByLabel(QString("test"));
         InputPin pin(&backend, QString("test"), 25);
-        pin.setActiveLow(false);
         pin.request();
+        pin.release();
 
-        QSignalSpy asserted(&pin, &InputPin::asserted);
+        QSignalSpy spy(&pin, &InputPin::edge);
         backend.simulateEdge(25, Gpio::Edge::Rising);
 
-        QCOMPARE(asserted.count(), 1);
+        QCOMPARE(spy.count(), 0);
     }
 
     void destructorReleasesTheLine()

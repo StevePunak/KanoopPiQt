@@ -270,7 +270,7 @@ void LibGpiodBackend::release(Gpio::RequestHandle handle)
     Request entry = _requests.take(handle);
 
     if(entry.notifier != nullptr) {
-        // The line request owns the fd, not the notifier; destroy the notifier first.
+        // The line request owns the fd; destroy the notifier before releasing the request.
         _handleByFd.remove(static_cast<int>(entry.notifier->socket()));
         entry.notifier->setEnabled(false);
         delete entry.notifier;
@@ -329,7 +329,7 @@ void LibGpiodBackend::onEventFdActivated(int fd)
     }
 
     int count = gpiod_line_request_read_edge_events(entry.request, entry.eventBuffer,
-                                                     EdgeEventBufferCapacity);
+                                                    EdgeEventBufferCapacity);
     if(count < 0) {
         setErrorText(QString("read edge events failed: %1").arg(strerror(errno)));
         return;
@@ -352,6 +352,9 @@ void LibGpiodBackend::onEventFdActivated(int fd)
     }
 
     for(const PendingEdgeEvent& item : pending) {
+        if(_requests.contains(handle) == false) {
+            break;
+        }
         emit edgeEvent(item.offset, item.edge);
     }
 }

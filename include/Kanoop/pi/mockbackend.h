@@ -2,6 +2,7 @@
 #define KANOOP_PI_MOCKBACKEND_H
 
 #include <QMap>
+#include <QSet>
 
 #include <Kanoop/pi/gpiobackend.h>
 
@@ -28,7 +29,11 @@ public:
                            const QList<quint32>& offsets,
                            const QList<Gpio::Value>& values) override;
 
-    /** @brief Emits edgeEvent() for @p offset as though hardware had detected @p edge. */
+    /**
+     * @brief Emits edgeEvent() for @p offset as though hardware had detected @p edge.
+     *
+     * @p edge is logical, matching what the kernel reports on a live request.
+     */
     void simulateEdge(quint32 offset, Gpio::Edge edge);
 
     /** @brief Returns the current logical value of @p offset. */
@@ -62,6 +67,7 @@ private:
     Gpio::RequestHandle _nextHandle = 1;
     QMap<quint32, Gpio::Value> _values;
     QMap<quint32, Gpio::RequestHandle> _owners;
+    QSet<Gpio::RequestHandle> _liveHandles;
     Gpio::InputRequest _lastInputRequest;
     Gpio::OutputRequest _lastOutputRequest;
     int _setValuesCallCount = 0;

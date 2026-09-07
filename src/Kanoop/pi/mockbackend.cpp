@@ -24,6 +24,28 @@ void MockBackend::closeChip()
     _open = false;
     _owners.clear();
     _values.clear();
+    _liveHandles.clear();
+}
+
+namespace
+{
+
+bool offsetsAreShapedForRequest(const QList<quint32>& offsets, QString* errorText)
+{
+    if(offsets.isEmpty() == true) {
+        *errorText = QString("request has no offsets");
+        return false;
+    }
+
+    QSet<quint32> unique(offsets.begin(), offsets.end());
+    if(unique.count() != offsets.count()) {
+        *errorText = QString("request contains duplicate offsets");
+        return false;
+    }
+
+    return true;
+}
+
 }
 
 Gpio::RequestHandle MockBackend::requestOutputs(const Gpio::OutputRequest& request)
@@ -39,6 +61,12 @@ Gpio::RequestHandle MockBackend::requestOutputs(const Gpio::OutputRequest& reque
         return Gpio::InvalidRequest;
     }
 
+    QString shapeError;
+    if(offsetsAreShapedForRequest(request.offsets, &shapeError) == false) {
+        setErrorText(shapeError);
+        return Gpio::InvalidRequest;
+    }
+
     for(quint32 offset : request.offsets) {
         if(_owners.contains(offset) == true) {
             setErrorText(QString("line %1 is already requested").arg(offset));
@@ -51,6 +79,7 @@ Gpio::RequestHandle MockBackend::requestOutputs(const Gpio::OutputRequest& reque
         _owners.insert(offset, handle);
         _values.insert(offset, request.initialValue);
     }
+    _liveHandles.insert(handle);
     _lastOutputRequest = request;
     return handle;
 }
@@ -68,6 +97,12 @@ Gpio::RequestHandle MockBackend::requestInputs(const Gpio::InputRequest& request
         return Gpio::InvalidRequest;
     }
 
+    QString shapeError;
+    if(offsetsAreShapedForRequest(request.offsets, &shapeError) == false) {
+        setErrorText(shapeError);
+        return Gpio::InvalidRequest;
+    }
+
     for(quint32 offset : request.offsets) {
         if(_owners.contains(offset) == true) {
             setErrorText(QString("line %1 is already requested").arg(offset));
@@ -79,6 +114,7 @@ Gpio::RequestHandle MockBackend::requestInputs(const Gpio::InputRequest& request
     for(quint32 offset : request.offsets) {
         _owners.insert(offset, handle);
     }
+    _liveHandles.insert(handle);
     _lastInputRequest = request;
     return handle;
 }
@@ -90,6 +126,7 @@ void MockBackend::release(Gpio::RequestHandle handle)
         _owners.remove(offset);
         _values.remove(offset);
     }
+    _liveHandles.remove(handle);
 }
 
 bool MockBackend::setValues(Gpio::RequestHandle handle,
@@ -98,6 +135,16 @@ bool MockBackend::setValues(Gpio::RequestHandle handle,
 {
     _setValuesCallCount++;
     _lastSetOffsets = offsets;
+
+    if(_open == false) {
+        setErrorText(QString("chip is not open"));
+        return false;
+    }
+
+    if(_liveHandles.contains(handle) == false) {
+        setErrorText(QString("unknown request handle"));
+        return false;
+    }
 
     if(offsets.count() != values.count()) {
         setErrorText(QString("offset and value counts differ"));

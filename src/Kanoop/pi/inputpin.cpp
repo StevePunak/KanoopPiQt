@@ -27,7 +27,7 @@ bool InputPin::request()
     request.activeLow = _activeLow;
     request.bias = _bias;
     request.edge = _edge;
-    request.debounceMicroseconds = static_cast<unsigned long>(_debounce.totalMicroseconds());
+    request.debounceMicroseconds = static_cast<unsigned long>(qMax(0.0, _debounce.totalMicroseconds()));
 
     _handle = _backend->requestInputs(request);
     if(_handle == Gpio::InvalidRequest) {
@@ -49,19 +49,16 @@ void InputPin::release()
 
 void InputPin::onBackendEdgeEvent(quint32 offset, Gpio::Edge edgeType)
 {
-    if(offset != _offset) {
+    if(offset != _offset || isRequested() == false) {
         return;
     }
 
     emit edge(edgeType);
 
-    Gpio::Edge assertingEdge = _activeLow == true
-                               ? Gpio::Edge::Falling
-                               : Gpio::Edge::Rising;
-    if(edgeType == assertingEdge) {
+    if(edgeType == Gpio::Edge::Rising) {
         emit asserted();
     }
-    else if(edgeType == Gpio::Edge::Falling || edgeType == Gpio::Edge::Rising) {
+    else if(edgeType == Gpio::Edge::Falling) {
         emit deasserted();
     }
 }
