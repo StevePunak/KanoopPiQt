@@ -5,12 +5,7 @@
 
 #include <Kanoop/pi/gpio.h>
 
-/**
- * @brief Abstract GPIO transport.
- *
- * Consumers of this library are written against this interface so they can be
- * exercised with MockBackend on a host with no GPIO hardware.
- */
+/** @brief Abstract GPIO transport. */
 class KANOOPPI_EXPORT IGpioBackend : public QObject
 {
     Q_OBJECT

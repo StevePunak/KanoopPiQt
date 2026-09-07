@@ -67,6 +67,13 @@ Gpio::RequestHandle MockBackend::requestInputs(const Gpio::InputRequest& request
         return Gpio::InvalidRequest;
     }
 
+    for(quint32 offset : request.offsets) {
+        if(_owners.contains(offset) == true) {
+            setErrorText(QString("line %1 is already requested").arg(offset));
+            return Gpio::InvalidRequest;
+        }
+    }
+
     Gpio::RequestHandle handle = _nextHandle++;
     for(quint32 offset : request.offsets) {
         _owners.insert(offset, handle);

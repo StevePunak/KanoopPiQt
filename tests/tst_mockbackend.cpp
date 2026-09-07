@@ -48,18 +48,50 @@ private slots:
         QCOMPARE(backend.requestOutputs(second), Gpio::InvalidRequest);
     }
 
+    void secondRequestOfTheSameLineAsInputFails()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::InputRequest first;
+        first.offsets = QList<quint32>() << 5;
+        QVERIFY(backend.requestInputs(first) != Gpio::InvalidRequest);
+
+        Gpio::InputRequest second;
+        second.offsets = QList<quint32>() << 5;
+        QCOMPARE(backend.requestInputs(second), Gpio::InvalidRequest);
+    }
+
+    void requestInputsRejectsOutputOwnedLine()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        Gpio::OutputRequest output;
+        output.offsets = QList<quint32>() << 5;
+        QVERIFY(backend.requestOutputs(output) != Gpio::InvalidRequest);
+
+        Gpio::InputRequest input;
+        input.offsets = QList<quint32>() << 5;
+        QCOMPARE(backend.requestInputs(input), Gpio::InvalidRequest);
+    }
+
     void setValuesRejectsForeignLines()
     {
         MockBackend backend;
         backend.openChipByLabel(QString("test"));
 
-        Gpio::OutputRequest request;
-        request.offsets = QList<quint32>() << 5;
-        Gpio::RequestHandle handle = backend.requestOutputs(request);
+        Gpio::OutputRequest firstReq;
+        firstReq.offsets = QList<quint32>() << 5;
+        Gpio::RequestHandle firstHandle = backend.requestOutputs(firstReq);
+
+        Gpio::OutputRequest secondReq;
+        secondReq.offsets = QList<quint32>() << 9;
+        Gpio::RequestHandle secondHandle = backend.requestOutputs(secondReq);
 
         QList<quint32> offsets = QList<quint32>() << 9;
         QList<Gpio::Value> values = QList<Gpio::Value>() << Gpio::Value::Active;
-        QCOMPARE(backend.setValues(handle, offsets, values), false);
+        QCOMPARE(backend.setValues(firstHandle, offsets, values), false);
     }
 
     void releaseFreesTheLines()
