@@ -15,3 +15,4 @@ endfunction()
 
 add_kanooppi_test(tst_smoke)
 add_kanooppi_test(tst_mockbackend)
+add_kanooppi_test(tst_outputbank)
