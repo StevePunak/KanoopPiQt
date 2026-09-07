@@ -29,6 +29,15 @@ target_include_directories(${PROJ} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(${PROJ} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/Kanoop)
 target_include_directories(${PROJ} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+if(NOT TARGET KanoopCommonQt)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../KanoopCommonQt/CMakeLists.txt")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../KanoopCommonQt" KanoopCommonQt)
+    else()
+        message(FATAL_ERROR "KanoopCommonQt not found. Clone it beside this repo or build from the superproject.")
+    endif()
+endif()
+
+target_link_libraries(${PROJ} PUBLIC KanoopCommonQt)
 target_link_libraries(${PROJ} PRIVATE Qt6::Core PkgConfig::GPIOD)
 
 add_compile_definitions(KANOOPPI_LIBRARY)

@@ -5,6 +5,7 @@ function(add_kanooppi_test name)
     target_link_libraries(${name} PRIVATE
         Qt6::Test
         Qt6::Core
+        KanoopCommonQt
         KanoopPiQt
     )
     target_include_directories(${name} PRIVATE
@@ -17,3 +18,4 @@ add_kanooppi_test(tst_smoke)
 add_kanooppi_test(tst_mockbackend)
 add_kanooppi_test(tst_outputbank)
 add_kanooppi_test(tst_outputpin)
+add_kanooppi_test(tst_inputpin)
