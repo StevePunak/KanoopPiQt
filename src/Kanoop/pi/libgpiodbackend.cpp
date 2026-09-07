@@ -11,6 +11,15 @@
 namespace
 {
 
+constexpr size_t EdgeEventBufferCapacity = 16;
+
+class PendingEdgeEvent
+{
+public:
+    quint32 offset = 0;
+    Gpio::Edge edge = Gpio::Edge::None;
+};
+
 enum gpiod_line_value toLineValue(Gpio::Value value)
 {
     return value == Gpio::Value::Active
@@ -95,6 +104,8 @@ bool LibGpiodBackend::openChipByPath(const QString& path)
 
 bool LibGpiodBackend::openChipByLabel(const QString& label)
 {
+    closeChip();
+
     QStringList paths = chipPaths();
     for(const QString& path : paths) {
         if(labelOf(path) == label) {
@@ -227,16 +238,23 @@ Gpio::RequestHandle LibGpiodBackend::requestInputs(const Gpio::InputRequest& req
     Request entry;
     entry.request = lineRequest;
 
+    if(request.edge != Gpio::Edge::None) {
+        entry.eventBuffer = gpiod_edge_event_buffer_new(EdgeEventBufferCapacity);
+        if(entry.eventBuffer == nullptr) {
+            gpiod_line_request_release(lineRequest);
+            setErrorText(QString("event buffer allocation failed: %1").arg(strerror(errno)));
+            return Gpio::InvalidRequest;
+        }
+    }
+
     Gpio::RequestHandle handle = _nextHandle++;
 
-    if(request.edge != Gpio::Edge::None) {
-        entry.eventBuffer = gpiod_edge_event_buffer_new(16);
+    if(entry.eventBuffer != nullptr) {
         int fd = gpiod_line_request_get_fd(lineRequest);
         entry.notifier = new QSocketNotifier(fd, QSocketNotifier::Read, this);
         connect(entry.notifier, &QSocketNotifier::activated,
                 this, &LibGpiodBackend::onEventFdActivated);
         _handleByFd.insert(fd, handle);
-        entry.notifier->setEnabled(true);
     }
 
     _requests.insert(handle, entry);
@@ -252,6 +270,7 @@ void LibGpiodBackend::release(Gpio::RequestHandle handle)
     Request entry = _requests.take(handle);
 
     if(entry.notifier != nullptr) {
+        // The line request owns the fd, not the notifier; destroy the notifier first.
         _handleByFd.remove(static_cast<int>(entry.notifier->socket()));
         entry.notifier->setEnabled(false);
         delete entry.notifier;
@@ -260,6 +279,7 @@ void LibGpiodBackend::release(Gpio::RequestHandle handle)
         gpiod_edge_event_buffer_free(entry.eventBuffer);
     }
     if(entry.request != nullptr) {
+        // Closes the fd from gpiod_line_request_get_fd(); never close() it elsewhere.
         gpiod_line_request_release(entry.request);
     }
 }
@@ -308,7 +328,14 @@ void LibGpiodBackend::onEventFdActivated(int fd)
         return;
     }
 
-    int count = gpiod_line_request_read_edge_events(entry.request, entry.eventBuffer, 16);
+    int count = gpiod_line_request_read_edge_events(entry.request, entry.eventBuffer,
+                                                     EdgeEventBufferCapacity);
+    if(count < 0) {
+        setErrorText(QString("read edge events failed: %1").arg(strerror(errno)));
+        return;
+    }
+
+    QList<PendingEdgeEvent> pending;
     for(int i = 0;i < count;i++) {
         gpiod_edge_event* event =
             gpiod_edge_event_buffer_get_event(entry.eventBuffer, static_cast<unsigned long>(i));
@@ -316,10 +343,16 @@ void LibGpiodBackend::onEventFdActivated(int fd)
             continue;
         }
 
-        Gpio::Edge edge = gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_RISING_EDGE
-                          ? Gpio::Edge::Rising
-                          : Gpio::Edge::Falling;
-        emit edgeEvent(gpiod_edge_event_get_line_offset(event), edge);
+        PendingEdgeEvent item;
+        item.offset = gpiod_edge_event_get_line_offset(event);
+        item.edge = gpiod_edge_event_get_event_type(event) == GPIOD_EDGE_EVENT_RISING_EDGE
+                    ? Gpio::Edge::Rising
+                    : Gpio::Edge::Falling;
+        pending.append(item);
+    }
+
+    for(const PendingEdgeEvent& item : pending) {
+        emit edgeEvent(item.offset, item.edge);
     }
 }
 

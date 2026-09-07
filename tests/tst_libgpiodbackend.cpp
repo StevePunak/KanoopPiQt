@@ -1,4 +1,3 @@
-#include <QDir>
 #include <QTest>
 
 #include <Kanoop/pi/libgpiodbackend.h>
