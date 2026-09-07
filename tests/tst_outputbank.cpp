@@ -78,7 +78,9 @@ private slots:
         OutputBank bank(&backend, QString("test"), zoneOffsets(), true);
         bank.request();
 
+        int before = backend.setValuesCallCount();
         QCOMPARE(bank.setValue(99, true), false);
+        QCOMPARE(backend.setValuesCallCount(), before);
         QVERIFY(bank.errorText().contains(QString("99")));
     }
 
@@ -118,6 +120,7 @@ private slots:
         bank.request();
         bank.setValue(5, true);
 
+        QCOMPARE(backend.lastOutputRequest().activeLow, true);
         QCOMPARE(backend.lineValue(5), Gpio::Value::Active);
     }
 
@@ -129,6 +132,43 @@ private slots:
             OutputBank bank(&backend, QString("test"), zoneOffsets(), true);
             bank.request();
             QCOMPARE(backend.isRequested(5), true);
+        }
+        QCOMPARE(backend.isRequested(5), false);
+    }
+
+    void requestTwiceIsIdempotent()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+        OutputBank bank(&backend, QString("test"), zoneOffsets(), true);
+
+        QVERIFY(bank.request());
+        QVERIFY(bank.request());
+        QVERIFY(bank.isRequested());
+        QVERIFY(bank.setValue(5, true));
+        QCOMPARE(bank.isActive(5), true);
+    }
+
+    void releaseBeforeRequestIsHarmless()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+        OutputBank bank(&backend, QString("test"), zoneOffsets(), true);
+
+        bank.release();
+        QCOMPARE(bank.isRequested(), false);
+    }
+
+    void releaseThenDestructorDoesNotDoubleRelease()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+        {
+            OutputBank bank(&backend, QString("test"), zoneOffsets(), true);
+            bank.request();
+            QCOMPARE(backend.isRequested(5), true);
+            bank.release();
+            QCOMPARE(backend.isRequested(5), false);
         }
         QCOMPARE(backend.isRequested(5), false);
     }

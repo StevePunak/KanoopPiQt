@@ -51,6 +51,7 @@ Gpio::RequestHandle MockBackend::requestOutputs(const Gpio::OutputRequest& reque
         _owners.insert(offset, handle);
         _values.insert(offset, request.initialValue);
     }
+    _lastOutputRequest = request;
     return handle;
 }
 

@@ -49,6 +49,9 @@ public:
     /** @brief Returns the request descriptor recorded for the most recent requestInputs(). */
     Gpio::InputRequest lastInputRequest() const { return _lastInputRequest; }
 
+    /** @brief Returns the request descriptor recorded for the most recent requestOutputs(). */
+    Gpio::OutputRequest lastOutputRequest() const { return _lastOutputRequest; }
+
     /** @brief When set, the next request call fails and clears the flag. */
     void setFailNextRequest(bool value) { _failNextRequest = value; }
 
@@ -60,6 +63,7 @@ private:
     QMap<quint32, Gpio::Value> _values;
     QMap<quint32, Gpio::RequestHandle> _owners;
     Gpio::InputRequest _lastInputRequest;
+    Gpio::OutputRequest _lastOutputRequest;
     int _setValuesCallCount = 0;
     QList<quint32> _lastSetOffsets;
 };

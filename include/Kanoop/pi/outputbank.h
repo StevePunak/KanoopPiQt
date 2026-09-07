@@ -16,12 +16,21 @@ class KANOOPPI_EXPORT OutputBank : public QObject
 {
     Q_OBJECT
 public:
+    /**
+     * @brief Constructs an OutputBank for a set of lines.
+     * @param backend The GPIO backend to use for requests.
+     * @param consumer The string the kernel records as the owner of these lines.
+     * @param offsets The GPIO line offsets to request together.
+     * @param activeLow Whether these lines are active-low.
+     * @param parent Qt parent object.
+     */
     OutputBank(IGpioBackend* backend,
                const QString& consumer,
                const QList<quint32>& offsets,
                bool activeLow,
                QObject* parent = nullptr);
 
+    /** @brief Releases the lines if held. */
     virtual ~OutputBank();
 
     /** @brief Requests the lines, all inactive. @return True on success. */

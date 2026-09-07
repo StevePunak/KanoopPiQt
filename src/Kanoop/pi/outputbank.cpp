@@ -34,9 +34,6 @@ bool OutputBank::request()
         return false;
     }
 
-    for(quint32 offset : _offsets) {
-        _active.insert(offset, false);
-    }
     return true;
 }
 
