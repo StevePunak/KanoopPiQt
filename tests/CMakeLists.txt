@@ -14,3 +14,4 @@ function(add_kanooppi_test name)
 endfunction()
 
 add_kanooppi_test(tst_smoke)
+add_kanooppi_test(tst_mockbackend)
