@@ -86,6 +86,28 @@ bool OutputBank::setValues(const QMap<quint32, bool>& values)
     return true;
 }
 
+bool OutputBank::readValues(QMap<quint32, bool>& values)
+{
+    if(isRequested() == false) {
+        _errorText = QString("Lines are not requested");
+        return false;
+    }
+
+    QList<Gpio::Value> read;
+    if(_backend->getValues(_handle, _offsets, read) == false) {
+        _errorText = _backend->errorText();
+        return false;
+    }
+
+    QMap<quint32, bool> result;
+    for(int i = 0; i < _offsets.count(); i++) {
+        result.insert(_offsets.at(i), read.at(i) == Gpio::Value::Active);
+    }
+
+    values = result;
+    return true;
+}
+
 bool OutputBank::allInactive()
 {
     QMap<quint32, bool> values;

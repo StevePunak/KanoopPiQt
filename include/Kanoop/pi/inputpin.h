@@ -54,6 +54,18 @@ public:
     /** @brief Returns the line offset. */
     quint32 offset() const { return _offset; }
 
+    /**
+     * @brief Returns the present logical level of the line.
+     *
+     * An edge-only input has no initial state, so a process that starts while the
+     * input is already asserted never sees the edge that got it there. Call this
+     * once after request() to establish the starting point.
+     *
+     * @param ok Set to true when the read succeeded, false otherwise. May be null.
+     * @return True when the line is asserted.
+     */
+    bool isAsserted(bool* ok = nullptr);
+
     /** @brief Returns the text of the most recent failure. */
     QString errorText() const { return _errorText; }
 

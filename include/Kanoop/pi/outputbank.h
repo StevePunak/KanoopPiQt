@@ -60,6 +60,17 @@ public:
     /** @brief Returns the last value written to @p offset. */
     bool isActive(quint32 offset) const { return _active.value(offset, false); }
 
+    /**
+     * @brief Reads the present state of every line in the bank into @p values.
+     *
+     * Unlike isActive(), which returns the last value written, this queries the
+     * backend. Use it wherever a disagreement between cache and hardware is the
+     * thing being tested for.
+     *
+     * @return True on success.
+     */
+    bool readValues(QMap<quint32, bool>& values);
+
     /** @brief Returns the line offsets in this bank. */
     QList<quint32> offsets() const { return _offsets; }
 

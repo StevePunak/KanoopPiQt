@@ -69,6 +69,11 @@ public:
                            const QList<quint32>& offsets,
                            const QList<Gpio::Value>& values) override;
 
+    /** @brief Reads the present logical level of @p offsets into @p values. @return True on success. */
+    virtual bool getValues(Gpio::RequestHandle handle,
+                           const QList<quint32>& offsets,
+                           QList<Gpio::Value>& values) override;
+
     /** @brief Returns every /dev/gpiochipN path present on the system, sorted. */
     static QStringList chipPaths();
 

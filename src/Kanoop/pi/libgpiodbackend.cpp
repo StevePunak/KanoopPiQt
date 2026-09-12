@@ -316,6 +316,46 @@ bool LibGpiodBackend::setValues(Gpio::RequestHandle handle,
     return true;
 }
 
+bool LibGpiodBackend::getValues(Gpio::RequestHandle handle,
+                                const QList<quint32>& offsets,
+                                QList<Gpio::Value>& values)
+{
+    if(_requests.contains(handle) == false) {
+        setErrorText(QString("unknown request handle"));
+        return false;
+    }
+
+    gpiod_line_request* lineRequest = _requests.value(handle).request;
+
+    QList<unsigned int> rawOffsets;
+    for(quint32 offset : offsets) {
+        rawOffsets.append(offset);
+    }
+
+    QList<enum gpiod_line_value> rawValues;
+    rawValues.resize(offsets.count());
+
+    if(gpiod_line_request_get_values_subset(lineRequest,
+                                            static_cast<size_t>(rawOffsets.count()),
+                                            rawOffsets.constData(),
+                                            rawValues.data()) != 0) {
+        setErrorText(QString("get values failed: %1").arg(strerror(errno)));
+        return false;
+    }
+
+    QList<Gpio::Value> result;
+    for(enum gpiod_line_value raw : rawValues) {
+        if(raw == GPIOD_LINE_VALUE_ERROR) {
+            setErrorText(QString("kernel reported GPIOD_LINE_VALUE_ERROR"));
+            return false;
+        }
+        result.append(raw == GPIOD_LINE_VALUE_ACTIVE ? Gpio::Value::Active : Gpio::Value::Inactive);
+    }
+
+    values = result;
+    return true;
+}
+
 void LibGpiodBackend::onEventFdActivated(int fd)
 {
     Gpio::RequestHandle handle = _handleByFd.value(fd, Gpio::InvalidRequest);

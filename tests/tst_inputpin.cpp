@@ -113,6 +113,36 @@ private slots:
         QCOMPARE(spy.count(), 0);
     }
 
+    void isAssertedReadsTheLine()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        InputPin pin(&backend, QString("test"), 25);
+        pin.setActiveLow(true);
+        QVERIFY(pin.request());
+
+        bool ok = false;
+        QCOMPARE(pin.isAsserted(&ok), false);
+        QCOMPARE(ok, true);
+
+        backend.setLineValue(25, Gpio::Value::Active);
+        QCOMPARE(pin.isAsserted(&ok), true);
+        QCOMPARE(ok, true);
+    }
+
+    void isAssertedReportsFailureWhenNotRequested()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+
+        InputPin pin(&backend, QString("test"), 25);
+
+        bool ok = true;
+        QCOMPARE(pin.isAsserted(&ok), false);
+        QCOMPARE(ok, false);
+    }
+
     void destructorReleasesTheLine()
     {
         MockBackend backend;

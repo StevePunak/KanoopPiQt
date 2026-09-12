@@ -159,6 +159,32 @@ private slots:
         QCOMPARE(bank.isRequested(), false);
     }
 
+    void readValuesReflectsTheKernelNotTheCache()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+        OutputBank bank(&backend, QString("test"), QList<quint32>() << 5 << 6, false);
+
+        QVERIFY(bank.request());
+        QVERIFY(bank.setValue(5, true));
+
+        QMap<quint32, bool> values;
+        QVERIFY(bank.readValues(values));
+        QCOMPARE(values.count(), 2);
+        QCOMPARE(values.value(5), true);
+        QCOMPARE(values.value(6), false);
+    }
+
+    void readValuesFailsWhenNotRequested()
+    {
+        MockBackend backend;
+        backend.openChipByLabel(QString("test"));
+        OutputBank bank(&backend, QString("test"), QList<quint32>() << 5, false);
+
+        QMap<quint32, bool> values;
+        QVERIFY(bank.readValues(values) == false);
+    }
+
     void releaseThenDestructorDoesNotDoubleRelease()
     {
         MockBackend backend;

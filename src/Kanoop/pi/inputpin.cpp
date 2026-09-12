@@ -47,6 +47,29 @@ void InputPin::release()
     _handle = Gpio::InvalidRequest;
 }
 
+bool InputPin::isAsserted(bool* ok)
+{
+    if(ok != nullptr) {
+        *ok = false;
+    }
+
+    if(isRequested() == false) {
+        _errorText = QString("Line is not requested");
+        return false;
+    }
+
+    QList<Gpio::Value> values;
+    if(_backend->getValues(_handle, QList<quint32>() << _offset, values) == false) {
+        _errorText = _backend->errorText();
+        return false;
+    }
+
+    if(ok != nullptr) {
+        *ok = true;
+    }
+    return values.first() == Gpio::Value::Active;
+}
+
 void InputPin::onBackendEdgeEvent(quint32 offset, Gpio::Edge edgeType)
 {
     if(offset != _offset || isRequested() == false) {
