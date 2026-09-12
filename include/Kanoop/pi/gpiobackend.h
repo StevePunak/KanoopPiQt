@@ -44,6 +44,18 @@ public:
                            const QList<quint32>& offsets,
                            const QList<Gpio::Value>& values) = 0;
 
+    /**
+     * @brief Reads the present logical level of @p offsets into @p values.
+     *
+     * Values are logical: active-low inversion was applied by the kernel when the
+     * lines were requested, so a returned Active means the load is energised.
+     *
+     * @return True on success. On failure @p values is left untouched.
+     */
+    virtual bool getValues(Gpio::RequestHandle handle,
+                           const QList<quint32>& offsets,
+                           QList<Gpio::Value>& values) = 0;
+
     /** @brief Returns the text of the most recent failure. */
     QString errorText() const { return _errorText; }
 

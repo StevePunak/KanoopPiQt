@@ -29,6 +29,11 @@ public:
                            const QList<quint32>& offsets,
                            const QList<Gpio::Value>& values) override;
 
+    /** @brief Reads the stored logical level of @p offsets into @p values. @return True on success. */
+    virtual bool getValues(Gpio::RequestHandle handle,
+                           const QList<quint32>& offsets,
+                           QList<Gpio::Value>& values) override;
+
     /**
      * @brief Emits edgeEvent() for @p offset as though hardware had detected @p edge.
      *
@@ -39,11 +44,17 @@ public:
     /** @brief Returns the current logical value of @p offset. */
     Gpio::Value lineValue(quint32 offset) const { return _values.value(offset, Gpio::Value::Inactive); }
 
+    /** @brief Sets the stored logical level of @p offset without emitting an edge. */
+    void setLineValue(quint32 offset, Gpio::Value value) { _values.insert(offset, value); }
+
     /** @brief Returns true when @p offset belongs to a live request. */
     bool isRequested(quint32 offset) const { return _owners.contains(offset); }
 
     /** @brief Returns the number of setValues() calls since construction. */
     int setValuesCallCount() const { return _setValuesCallCount; }
+
+    /** @brief Resets the setValues() call counter. */
+    void resetSetValuesCallCount() { _setValuesCallCount = 0; }
 
     /** @brief Returns the offsets passed to the most recent setValues() call. */
     QList<quint32> lastSetOffsets() const { return _lastSetOffsets; }

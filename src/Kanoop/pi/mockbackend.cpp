@@ -164,6 +164,28 @@ bool MockBackend::setValues(Gpio::RequestHandle handle,
     return true;
 }
 
+bool MockBackend::getValues(Gpio::RequestHandle handle,
+                            const QList<quint32>& offsets,
+                            QList<Gpio::Value>& values)
+{
+    if(_liveHandles.contains(handle) == false) {
+        setErrorText(QString("unknown request handle"));
+        return false;
+    }
+
+    QList<Gpio::Value> result;
+    for(quint32 offset : offsets) {
+        if(_owners.value(offset, Gpio::InvalidRequest) != handle) {
+            setErrorText(QString("line %1 is not held by this request").arg(offset));
+            return false;
+        }
+        result.append(_values.value(offset, Gpio::Value::Inactive));
+    }
+
+    values = result;
+    return true;
+}
+
 void MockBackend::simulateEdge(quint32 offset, Gpio::Edge edge)
 {
     emit edgeEvent(offset, edge);

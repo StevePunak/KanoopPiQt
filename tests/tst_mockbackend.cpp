@@ -188,6 +188,51 @@ private slots:
         QVERIFY(backend.errorText().isEmpty() == false);
     }
 
+    void getValuesReturnsWhatWasSet()
+    {
+        MockBackend backend;
+        QVERIFY(backend.openChipByLabel(QString("mock")));
+
+        Gpio::OutputRequest request;
+        request.consumer = QString("test");
+        request.offsets = QList<quint32>() << 5 << 6 << 13;
+        Gpio::RequestHandle handle = backend.requestOutputs(request);
+        QVERIFY(handle != Gpio::InvalidRequest);
+
+        QVERIFY(backend.setValues(handle, QList<quint32>() << 6, QList<Gpio::Value>() << Gpio::Value::Active));
+
+        QList<Gpio::Value> values;
+        QVERIFY(backend.getValues(handle, QList<quint32>() << 5 << 6 << 13, values));
+        QCOMPARE(values.count(), 3);
+        QCOMPARE(values.at(0), Gpio::Value::Inactive);
+        QCOMPARE(values.at(1), Gpio::Value::Active);
+        QCOMPARE(values.at(2), Gpio::Value::Inactive);
+    }
+
+    void getValuesRejectsUnownedOffset()
+    {
+        MockBackend backend;
+        QVERIFY(backend.openChipByLabel(QString("mock")));
+
+        Gpio::OutputRequest request;
+        request.consumer = QString("test");
+        request.offsets = QList<quint32>() << 5;
+        Gpio::RequestHandle handle = backend.requestOutputs(request);
+
+        QList<Gpio::Value> values;
+        QVERIFY(backend.getValues(handle, QList<quint32>() << 5 << 99, values) == false);
+        QVERIFY(backend.errorText().isEmpty() == false);
+    }
+
+    void getValuesRejectsInvalidHandle()
+    {
+        MockBackend backend;
+        QVERIFY(backend.openChipByLabel(QString("mock")));
+
+        QList<Gpio::Value> values;
+        QVERIFY(backend.getValues(Gpio::InvalidRequest, QList<quint32>() << 5, values) == false);
+    }
+
     void failNextRequestIsOneShot()
     {
         MockBackend backend;
