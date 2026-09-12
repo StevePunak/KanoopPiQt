@@ -218,6 +218,7 @@ private slots:
         request.consumer = QString("test");
         request.offsets = QList<quint32>() << 5;
         Gpio::RequestHandle handle = backend.requestOutputs(request);
+        QVERIFY(handle != Gpio::InvalidRequest);
 
         QList<Gpio::Value> values;
         QVERIFY(backend.getValues(handle, QList<quint32>() << 5 << 99, values) == false);

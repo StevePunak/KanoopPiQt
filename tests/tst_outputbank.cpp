@@ -168,11 +168,14 @@ private slots:
         QVERIFY(bank.request());
         QVERIFY(bank.setValue(5, true));
 
+        backend.setLineValue(5, Gpio::Value::Inactive);
+
         QMap<quint32, bool> values;
         QVERIFY(bank.readValues(values));
         QCOMPARE(values.count(), 2);
-        QCOMPARE(values.value(5), true);
+        QCOMPARE(values.value(5), false);
         QCOMPARE(values.value(6), false);
+        QCOMPARE(bank.isActive(5), true);
     }
 
     void readValuesFailsWhenNotRequested()
