@@ -141,6 +141,12 @@ bool MockBackend::setValues(Gpio::RequestHandle handle,
         return false;
     }
 
+    if(_failNextSetValues == true) {
+        _failNextSetValues = false;
+        setErrorText(QString("injected failure"));
+        return false;
+    }
+
     if(_liveHandles.contains(handle) == false) {
         setErrorText(QString("unknown request handle"));
         return false;

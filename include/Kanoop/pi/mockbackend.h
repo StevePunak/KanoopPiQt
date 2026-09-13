@@ -71,9 +71,13 @@ public:
     /** @brief When set, the next request call fails and clears the flag. */
     void setFailNextRequest(bool value) { _failNextRequest = value; }
 
+    /** @brief When set, the next setValues() call fails and clears the flag. */
+    void setFailNextSetValues(bool value) { _failNextSetValues = value; }
+
 private:
     bool _open = false;
     bool _failNextRequest = false;
+    bool _failNextSetValues = false;
     QString _openedWith;
     Gpio::RequestHandle _nextHandle = 1;
     QMap<quint32, Gpio::Value> _values;
