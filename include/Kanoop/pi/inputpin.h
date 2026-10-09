@@ -84,9 +84,9 @@ private slots:
     void onBackendEdgeEvent(quint32 offset, Gpio::Edge edge);
 
 private:
-    IGpioBackend* _backend;
+    IGpioBackend* _backend = nullptr;
     QString _consumer;
-    quint32 _offset;
+    quint32 _offset = 0;
     Gpio::Bias _bias = Gpio::Bias::AsIs;
     Gpio::Edge _edge = Gpio::Edge::Both;
     TimeSpan _debounce;

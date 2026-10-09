@@ -80,10 +80,10 @@ public:
 private:
     bool ownsAll(const QList<quint32>& offsets);
 
-    IGpioBackend* _backend;
+    IGpioBackend* _backend = nullptr;
     QString _consumer;
     QList<quint32> _offsets;
-    bool _activeLow;
+    bool _activeLow = false;
     Gpio::RequestHandle _handle = Gpio::InvalidRequest;
     QMap<quint32, bool> _active;
     QString _errorText;

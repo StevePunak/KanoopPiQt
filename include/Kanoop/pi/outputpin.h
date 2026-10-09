@@ -56,7 +56,7 @@ public:
     QString errorText() const { return _bank.errorText(); }
 
 private:
-    quint32 _offset;
+    quint32 _offset = 0;
     OutputBank _bank;
 };
 
