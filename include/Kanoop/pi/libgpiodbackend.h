@@ -45,7 +45,8 @@ public:
      * @warning Consumers holding a handle from before this call are not
      *          notified. Their handle stays non-zero, so isRequested() keeps
      *          reporting true and every subsequent setValues() fails. Such a
-     *          consumer must be re-created rather than re-requested.
+     *          consumer must be re-created. Re-requesting its handle does
+     *          not recover it.
      */
     virtual void closeChip() override;
 
