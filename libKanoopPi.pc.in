@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: libKanoopPi
+Description: Raspberry Pi GPIO for Qt
+Version: @KANOOP_PI_VERSION@
+Requires: libgpiod
+Libs: -L${libdir} -lKanoopPiQt
+Cflags: -I${includedir}
